@@ -1,0 +1,234 @@
+<!doctype html>
+<!--
+  B-roll A: "the skills that build a 5 crore business won't build a 50 crore business".
+  A short yellow bar for 5 Cr, a "SAME SKILLS" chip that gets a red cross on "won't build",
+  then a red bar that shoots up ten times taller while its label counts 5 -> 50.
+  Local times are cued to the speaker's words (scene starts at 4.30s on the main timeline).
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "Montserrat Rupee";
+          src: url("assets/fonts/montserrat-latin-ext-900-normal.woff2") format("woff2");
+          font-weight: 900;
+          unicode-range: U+20B9;
+        }
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          font-family: "Montserrat Rupee", "Montserrat", sans-serif;
+          color: #f7f7f2;
+        }
+        .cr-stage {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(120% 80% at 50% 38%, #24242b 0%, #0c0c0f 70%);
+        }
+        .cr-grid {
+          position: absolute;
+          inset: 0;
+          background:
+            repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 96px),
+            repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 96px);
+        }
+        .cr-ground {
+          position: absolute;
+          left: 110px;
+          right: 110px;
+          top: 990px;
+          height: 6px;
+          border-radius: 3px;
+          background: rgba(255, 255, 255, 0.3);
+        }
+        .cr-bar {
+          position: absolute;
+          bottom: 930px;
+          width: 300px;
+          border-radius: 18px 18px 0 0;
+          transform-origin: 50% 100%;
+        }
+        .cr-bar-small {
+          left: 180px;
+          height: 90px;
+          background: #ffe11a;
+        }
+        .cr-bar-big {
+          left: 600px;
+          height: 640px;
+          background: linear-gradient(180deg, #ffe11a 0 18px, #ff2b2b 18px 100%);
+          box-shadow: 0 0 80px rgba(255, 43, 43, 0.35);
+        }
+        .cr-label {
+          position: absolute;
+          width: 300px;
+          text-align: center;
+          font-weight: 900;
+          letter-spacing: -0.03em;
+          line-height: 1;
+          white-space: nowrap;
+        }
+        .cr-label-small {
+          left: 180px;
+          bottom: 1045px;
+          font-size: 86px;
+          color: #f7f7f2;
+        }
+        .cr-label-big {
+          left: 560px;
+          width: 380px;
+          bottom: 950px;
+          font-size: 118px;
+          color: #ffe11a;
+          text-shadow: 0 6px 0 rgba(0, 0, 0, 0.55);
+        }
+        .cr-chip {
+          position: absolute;
+          left: 130px;
+          top: 560px;
+          width: 400px;
+          height: 120px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 18px;
+          background: #f7f7f2;
+          color: #0c0c0f;
+          font-weight: 900;
+          font-size: 58px;
+          letter-spacing: -0.02em;
+          box-shadow: 0 10px 0 rgba(0, 0, 0, 0.45);
+        }
+        .cr-cross {
+          position: absolute;
+          left: 130px;
+          top: 520px;
+          width: 400px;
+          height: 200px;
+        }
+        .cr-cross-bar {
+          position: absolute;
+          left: 30px;
+          top: 86px;
+          width: 340px;
+          height: 28px;
+          border-radius: 14px;
+          background: #ff2b2b;
+          box-shadow: 0 0 24px rgba(255, 43, 43, 0.6);
+        }
+      </style>
+
+      <div id="root" data-composition-id="broll-crore" data-width="1080" data-height="1920">
+        <div class="cr-stage" id="cr-stage" data-layout-allow-overflow>
+          <div class="cr-grid"></div>
+          <div class="cr-ground"></div>
+          <div class="cr-bar cr-bar-small" id="cr-bar-small"></div>
+          <div class="cr-label cr-label-small" id="cr-label-small">₹5 CR</div>
+          <div class="cr-chip" id="cr-chip" data-layout-allow-occlusion>SAME SKILLS</div>
+          <div class="cr-cross" id="cr-cross">
+            <div class="cr-cross-bar" id="cr-cross-a"></div>
+            <div class="cr-cross-bar" id="cr-cross-b"></div>
+          </div>
+          <div class="cr-bar cr-bar-big" id="cr-bar-big"></div>
+          <div class="cr-label cr-label-big" id="cr-label-big">₹5 CR</div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+          const bigLabel = document.getElementById("cr-label-big");
+
+          // Enter: quick scale-up from slightly large, like a punch into the graphic.
+          tl.fromTo(
+            "#cr-stage",
+            { scale: 1.14, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.2, ease: "power3.out" },
+            0,
+          );
+
+          // "a 5 crore business" -> the small bar grows and its label pops.
+          tl.fromTo(
+            "#cr-bar-small",
+            { scaleY: 0 },
+            { scaleY: 1, duration: 0.32, ease: "back.out(2.2)" },
+            0.18,
+          );
+          tl.fromTo(
+            "#cr-label-small",
+            { scale: 0, y: 40 },
+            { scale: 1, y: 0, duration: 0.26, ease: "back.out(3)" },
+            0.24,
+          );
+
+          // "won't build" -> SAME SKILLS chip slams in, then a red cross.
+          tl.fromTo(
+            "#cr-chip",
+            { scale: 0, rotation: 8 },
+            { scale: 1, rotation: -3, duration: 0.24, ease: "back.out(2.6)" },
+            1.67,
+          );
+          tl.fromTo(
+            "#cr-cross-a",
+            { scaleX: 0, rotation: 24 },
+            { scaleX: 1, rotation: 24, duration: 0.14, ease: "power4.out" },
+            2.03,
+          );
+          tl.fromTo(
+            "#cr-cross-b",
+            { scaleX: 0, rotation: -24 },
+            { scaleX: 1, rotation: -24, duration: 0.14, ease: "power4.out" },
+            2.1,
+          );
+          tl.fromTo("#cr-chip", { opacity: 1 }, { opacity: 0.55, duration: 0.2 }, 2.15);
+
+          // "a 50 crore business" -> the big bar shoots up, the label rides it and counts 5 -> 50.
+          tl.fromTo("#cr-bar-big", { scaleY: 0 }, { scaleY: 1, duration: 0.6, ease: "power4.out" }, 2.35);
+          tl.fromTo(
+            "#cr-label-big",
+            { opacity: 0, y: 0 },
+            { opacity: 1, y: -640, duration: 0.6, ease: "power4.out" },
+            2.35,
+          );
+          const counter = { v: 5 };
+          tl.fromTo(
+            counter,
+            { v: 5 },
+            {
+              v: 50,
+              duration: 0.6,
+              ease: "power2.out",
+              onUpdate: function () {
+                bigLabel.textContent = "₹" + Math.round(counter.v) + " CR";
+              },
+            },
+            2.35,
+          );
+          // Impact shake when the bar lands.
+          tl.to(
+            "#cr-stage",
+            {
+              keyframes: [
+                { x: -14, y: 8, duration: 0.04 },
+                { x: 12, y: -6, duration: 0.04 },
+                { x: -8, y: 4, duration: 0.04 },
+                { x: 0, y: 0, duration: 0.05 },
+              ],
+            },
+            2.5,
+          );
+
+          // Exit: swipe out to the left as the speaker returns.
+          tl.to("#cr-stage", { xPercent: -105, duration: 0.13, ease: "power2.in" }, 3.12);
+
+          window.__timelines["broll-crore"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>
