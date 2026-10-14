@@ -137,6 +137,65 @@ def word_em(text):
     return sum(ADV[c] for c in text) + TRACKING * (len(text) - 1) + STROKE
 
 
+# Sound effects (assets/sfx: Pixabay-licensed library bundled with HyperFrames, plus the
+# synthesized paper-rip.wav). Each cue is placed so the sound's own transient ("hit", seconds
+# into the file) lands on the visual event. Volumes keep the effects under the voice.
+B = {cid: (s, e) for cid, s, e in BROLL}
+HIT = {"whoosh": 0.16, "pop": 0.11, "impact-bass-1": 0.06, "sparkle": 0.02, "paper-rip": 0.0}
+SFX = []  # (file, start, duration or None, media start, volume)
+
+
+def cue(name, event, vol, media_start=0.0, dur=None, hit=None):
+    ext = "wav" if name == "paper-rip" else "mp3"
+    h = HIT.get(name, 0.0) if hit is None else hit
+    SFX.append((f"assets/sfx/{name}.{ext}", round(max(0.0, event - h), 3), dur, media_start, vol))
+
+
+# Whoosh as every B-roll scene punches in, and as each one swipes out.
+for cid, (s, e) in B.items():
+    cue("whoosh", s, 0.55)
+cue("whoosh", B["broll-crore"][0] + 3.12 + 0.06, 0.45)
+cue("whoosh", B["broll-scales"][0] + 3.11 + 0.06, 0.45)
+cue("whoosh", B["broll-founders"][0] + 2.44 + 0.06, 0.45)
+# Paper tear under the rip.
+cue("paper-rip", RIP_START + 0.04, 0.8)
+# Bass hits on the slams.
+cue("impact-bass-1", out(3.20), 0.32)  # YOU.
+cue("impact-bass-1", B["broll-crore"][0] + 2.45, 0.3)  # 50 Cr bar lands
+cue("impact-bass-1", B["broll-ready"][0] + 1.41, 0.3)  # READY stamp
+cue("impact-bass-1", out(20.64), 0.4)  # YOU?
+cue("impact-bass-1", out(33.94), 0.26)  # SOCH
+# Riser building under "the question is, are..." and peaking on "you?" (the file peaks ~3.0s in).
+cue("riser", out(20.64), 0.16, media_start=1.5, dur=2.0, hit=1.5)
+# Pops on power words and on graphics landing.
+for t in [
+    out(2.32),  # OUTGROWN
+    B["broll-crore"][0] + 0.24,  # 5 Cr bar label
+    B["broll-crore"][0] + 1.67,  # SAME SKILLS chip
+    B["broll-scales"][0] + 0.06,  # shop
+    B["broll-scales"][0] + 0.40,  # office
+    B["broll-scales"][0] + 0.88,  # tower
+    out(14.00),  # LEADER
+    out(14.64),  # QUALITIES
+    out(23.92),  # GROW
+    out(25.92),  # FOUNDERS
+    B["broll-founders"][0] + 2.08,  # building follows the founder
+    out(30.40),  # name card: VIPLAV
+    out(31.10),  # name card: COACH
+]:
+    cue("pop", t, 0.5)
+# "Won't build": a wrong-buzz on the red cross over SAME SKILLS.
+cue("error", B["broll-crore"][0] + 2.03, 1.0, media_start=0.55, dur=1.0, hit=0.05)
+# "Challenges": a short glitch as the warnings slam on.
+cue("glitch-1", B["broll-scales"][0] + 2.16, 0.22, media_start=0.12, dur=0.9, hit=0.05)
+# READY tick sparkle.
+cue("sparkle", B["broll-ready"][0] + 1.45, 0.25)
+# Soft swish as the red circles draw, as the founder grows and as the name card slides up.
+cue("whoosh", out(20.64) + 0.12, 0.3)
+cue("whoosh", out(33.94) + 0.12, 0.3)
+cue("whoosh", B["broll-founders"][0] + 1.12, 0.35)
+cue("whoosh", out(30.32) + 0.04, 0.4)
+
 def font_size(group):
     """Largest size that keeps the group on one line, else on two lines, inside the box."""
     widths = [
@@ -218,6 +277,31 @@ def build():
         )
         cap_events.append((f"cap-{gi}", start, end, words))
 
+    sfx_html = []
+    for i, (src, start, dur, mstart, vol) in enumerate(sorted(SFX, key=lambda c: c[1])):
+        attrs = f'id="sfx-{i + 1}" class="clip" src="{src}" data-start="{start}" data-track-index="{100 + i}"'
+        if mstart:
+            attrs += f' data-media-start="{mstart}"'
+        if dur:
+            # Trimmed cue: fade the cut edge out through the volume lane (which carries the level).
+            lane = {
+                "version": 1,
+                "lanes": [
+                    {
+                        "target": "volume",
+                        "points": [
+                            {"t": 0, "v": vol},
+                            {"t": round(dur - 0.25, 3), "v": vol},
+                            {"t": dur, "v": 0},
+                        ],
+                    }
+                ],
+            }
+            attrs += f' data-duration="{dur}" data-automation=\'{json.dumps(lane, separators=(",", ":"))}\''
+        else:
+            attrs += f' data-volume="{vol}"'
+        sfx_html.append(f"      <audio {attrs}></audio>")
+
     nc_words = [(f"nc-{i}", out(src), style) for i, (_, src, style) in enumerate(NAMECARD)]
     nc_spans = "".join(
         f'<span id="{wid}" class="nc-w{(" " + style) if style else ""}">{html.escape(NAMECARD[i][0])}</span>'
@@ -251,6 +335,7 @@ def build():
     page = page.replace("__RIP_START__", str(round(RIP_START, 3)))
     page = page.replace("__RIP_DUR__", str(RIP_DUR))
     page = page.replace("__CAPTIONS__", "\n".join(cap_html))
+    page = page.replace("__SFX__", "\n".join(sfx_html))
     page = page.replace("__NAMECARD__", nc_spans)
     page = page.replace("__DATA__", json.dumps(data, ensure_ascii=False))
     (ROOT / "index.html").write_text(page, encoding="utf-8")
@@ -258,6 +343,7 @@ def build():
     for cid, s, e in BROLL:
         print(f"  {cid}: {s:.2f} -> {e:.2f}")
     print(f"  paper rip: {RIP_START:.2f} -> {RIP_START + RIP_DUR:.2f}")
+    print(f"  {len(SFX)} sound effects")
 
 
 TEMPLATE = r"""<!doctype html>
@@ -471,6 +557,9 @@ __BROLL__
       <div id="caps">
 __CAPTIONS__
       </div>
+
+      <!-- Sound effects -->
+__SFX__
     </div>
 
     <!-- Paper-rip slots: tear a still of the READY B-roll away, revealing the speaker underneath. -->
