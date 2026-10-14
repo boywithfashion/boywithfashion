@@ -143,7 +143,8 @@
     for (const f of flashes) {
       const d = t - f.t;
       if (d < 0 || d > 0.19) continue;
-      a = Math.max(a, d < 0.03 ? (f.a * d) / 0.03 : f.a * (1 - (d - 0.03) / 0.16));
+      // Full on the first frame (so a dark B-roll never shows a frame before the flash), then fade.
+      a = Math.max(a, f.a * (1 - d / 0.19));
     }
     return a;
   }
