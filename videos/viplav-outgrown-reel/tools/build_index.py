@@ -62,31 +62,32 @@ def out(src):
     raise ValueError(f"source time {src} falls in a cut")
 
 
-# Caption phrases: 3-5 words on screen, each word highlighted as it is spoken.
-# Each word is (text, source start, style): "" stays white after it is spoken, "y" stays
-# yellow and "r" stays red (power words); a trailing "!" draws a red circle around it.
-# Word starts were checked against the audio (ASR timestamps were off on a few words).
+# Caption phrases, styled after the client's reference: short sentence-case lines in a clean
+# bold sans that reveal word by word as he speaks, with at most one keyword per phrase set
+# big in a black italic serif (neon yellow) on its own line. Each word is
+# (text, source start, style): "" small sans, "a" keyword, "ar" keyword with a red
+# hand-drawn circle. Word starts were checked against the audio.
 PHRASES = [
-    [("YOUR", 0.96, ""), ("BUSINESS", 1.28, ""), ("HAS", 1.98, ""), ("OUTGROWN", 2.32, "y"), ("YOU.", 3.03, "r")],
-    [("THE", 4.08, ""), ("SKILLS", 4.24, "y"), ("THAT", 4.96, ""), ("BUILD", 5.36, "")],
-    [("A", 5.55, ""), ("₹5 CRORE", 5.76, "y"), ("BUSINESS", 6.56, "")],
-    [("WON'T", 7.56, "r"), ("BUILD", 7.92, ""), ("A", 8.16, ""), ("₹50 CRORE", 8.24, "r"), ("BUSINESS.", 9.00, "")],
-    [("DIFFERENT", 10.00, ""), ("SCALES", 10.40, "y"), ("OF", 10.88, ""), ("BUSINESS,", 11.04, "")],
-    [("DIFFERENT", 11.84, ""), ("CHALLENGES,", 12.16, "r")],
-    [("DIFFERENT", 13.68, ""), ("LEADER", 14.00, "y"), ("QUALITIES.", 14.64, "y")],
-    [("THE", 16.00, ""), ("BUSINESS", 16.24, ""), ("IS", 17.04, ""), ("READY.", 17.36, "y")],
-    [("THE", 18.80, ""), ("QUESTION", 19.12, ""), ("IS:", 19.60, ""), ("ARE", 20.09, ""), ("YOU?", 20.41, "r!")],
-    [("BUSINESSES", 22.88, ""), ("GROW", 23.92, "y"), ("ONLY", 24.65, "")],
-    [("WHEN", 25.36, ""), ("THE", 25.68, ""), ("FOUNDERS", 25.90, "y"), ("GROW.", 26.87, "y")],
+    [("Your", 0.96, ""), ("business", 1.28, ""), ("has", 1.98, ""), ("outgrown", 2.32, "a"), ("you.", 3.03, "")],
+    [("The", 4.08, ""), ("skills", 4.24, ""), ("that", 4.96, ""), ("build", 5.36, "")],
+    [("a", 5.55, ""), ("₹5 crore", 5.76, ""), ("business", 6.56, "")],
+    [("won't", 7.56, ""), ("build", 7.92, ""), ("a", 8.16, ""), ("₹50 crore", 8.24, "a"), ("business.", 9.00, "")],
+    [("Different", 10.00, ""), ("scales", 10.40, ""), ("of", 10.88, ""), ("business,", 11.04, "")],
+    [("different", 11.84, ""), ("challenges,", 12.16, "a")],
+    [("different", 13.68, ""), ("leader", 14.00, ""), ("qualities.", 14.64, "")],
+    [("The", 16.00, ""), ("business", 16.24, ""), ("is", 17.04, ""), ("ready.", 17.36, "a")],
+    [("The", 18.80, ""), ("question", 19.12, ""), ("is:", 19.60, ""), ("are", 20.09, ""), ("you?", 20.41, "ar")],
+    [("Businesses", 22.88, ""), ("grow", 23.92, ""), ("only", 24.65, "")],
+    [("when", 25.36, ""), ("the", 25.68, ""), ("founders", 25.90, "a"), ("grow.", 26.87, "")],
     # 30.40-31.80 "Viplav the Coach" is carried by the name card.
-    [("JO", 32.34, ""), ("BADAL", 32.60, "y"), ("DE", 32.96, ""), ("AAPKI", 33.34, ""), ("SOCH", 33.57, "y!")],
+    [("jo", 32.34, ""), ("badal", 32.60, ""), ("de", 32.96, ""), ("aapki", 33.34, ""), ("soch.", 33.57, "a")],
 ]
+# The reference's small neon dot after the first word, used once on the opening line.
+DOT_AFTER_FIRST = {0}
 # A phrase stays up until the next one starts, but never more than this after its last word.
 PHRASE_TAIL = 1.5
-CAPTION_SIZE = 76  # px; the longest phrase fits two lines at this size
 
-# Name card (shown from the "Viplav the Coach" line to the end).
-NAMECARD = [("VIPLAV", ""), ("THE", ""), ("COACH", "r")]
+# Name card (shown from the "Viplav the Coach" line to the end): serif italic name, sans role.
 
 # Full-screen graphics (sub-compositions): (id, output start, output end). Only two, with
 # room to read them; the crore chart fades itself out, the founders chart is torn away.
@@ -137,7 +138,6 @@ cue("paper-rip", RIP_START + 0.04, 0.6)  # tear
 cue("riser", out(20.41), 0.1, media_start=1.5, dur=2.0, hit=1.5)  # builds into "you?"
 cue("impact-bass-1", out(20.41), 0.1, dur=0.9)  # soft hit on "you?"
 cue("whoosh", RIP_START + 1.05, 0.18)  # name card slides up
-cue("whoosh", out(33.57) + 0.15, 0.14)  # circle draws round SOCH
 
 # Calm music bed (tools/make_bgm.py, -22 LUFS) under the whole reel.
 BGM = "assets/music/calm-bed.m4a"
@@ -198,25 +198,29 @@ def build():
         last = out(phrase[-1][1])
         nxt = out(PHRASES[gi + 1][0][1]) if gi + 1 < len(PHRASES) else DURATION
         end = DURATION if gi + 1 == len(PHRASES) else min(nxt - 0.1, last + PHRASE_TAIL)
-        spans = []
+        rows = []  # (kind, [span html])
         words = []
         for wi, (text, src, style) in enumerate(phrase):
             wid = f"w{gi}-{wi}"
-            circled = style.endswith("!")
-            color = style.rstrip("!")
             ring = ""
-            if circled:
+            if style == "ar":
                 ring = (
                     '<svg class="ring" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">'
                     '<path d="M 22 7 C 58 1, 95 8, 97 20 C 99 31, 74 38, 44 37 C 16 36, 2 29, 3 19 C 4 10, 22 4, 52 4.5" /></svg>'
                 )
-            cls = "w ringed" if circled else "w"
-            spans.append(f'<span id="{wid}" class="{cls}">{html.escape(text)}{ring}</span>')
-            t_on = out(src)
-            # lit until the next word starts; the last word settles shortly after it is said
-            t_off = out(phrase[wi + 1][1]) if wi + 1 < len(phrase) else min(end, t_on + 0.7)
-            words.append({"id": wid, "on": t_on, "off": t_off, "c": color, "ring": circled})
-        cap_html.append(f'        <div id="cap-{gi}" class="cap">{" ".join(spans)}</div>')
+            span = f'<span id="{wid}" class="w">{html.escape(text)}{ring}</span>'
+            if wi == 0 and gi in DOT_AFTER_FIRST:
+                span += f' <span id="{wid}-dot" class="dot"></span>'
+            kind = "accent ringed" if style == "ar" else "accent" if style == "a" else "line"
+            if rows and rows[-1][0] == "line" and kind == "line":
+                rows[-1][1].append(span)
+            else:
+                rows.append((kind, [span]))
+            words.append(
+                {"id": wid, "on": out(src), "accent": kind != "line", "ring": style == "ar", "dot": wi == 0 and gi in DOT_AFTER_FIRST}
+            )
+        inner = "".join(f'<div class="{k}">{" ".join(sp)}</div>' for k, sp in rows)
+        cap_html.append(f'        <div id="cap-{gi}" class="cap">{inner}</div>')
         cap_events.append({"id": f"cap-{gi}", "start": start, "end": end, "words": words})
 
     sfx_html = []
@@ -252,9 +256,7 @@ def build():
         f'data-track-index="50" data-audio-group="music" data-volume="1"></audio>'
     )
 
-    nc_spans = " ".join(
-        f'<span class="nc-w{(" " + style) if style else ""}">{html.escape(text)}</span>' for text, style in NAMECARD
-    )
+    nc_spans = '<span class="nc-name">Viplav</span> <span class="nc-role">the coach</span>'
 
     cam_sets = []
     for i, o in enumerate(SEG_OUT):
@@ -278,7 +280,6 @@ def build():
     page = page.replace("__CAPTIONS__", "\n".join(cap_html))
     page = page.replace("__SFX__", "\n".join(sfx_html))
     page = page.replace("__NAMECARD__", nc_spans)
-    page = page.replace("__CAPTION_SIZE__", str(CAPTION_SIZE))
     page = page.replace("__DATA__", json.dumps(data, ensure_ascii=False))
     # The timeline script is maintained in tools/reel-timeline.js and inlined here, because the
     # composition must register window.__timelines inline.
@@ -329,12 +330,31 @@ TEMPLATE = r"""<!doctype html>
     <meta name="viewport" content="width=1080, height=1920" />
     <script src="assets/vendor/gsap.min.js"></script>
     <style>
-      /* Montserrat Black ships with HyperFrames; this face only adds the rupee sign. */
+      /* Caption type, after the client's reference: Inter Bold for the lines, Playfair Display
+         Black Italic for keywords (both shipped locally; the latin-ext files add the rupee sign). */
       @font-face {
-        font-family: "Montserrat Rupee";
-        src: url("assets/fonts/montserrat-latin-ext-900-normal.woff2") format("woff2");
+        font-family: "Caption Sans";
+        src: url("assets/fonts/inter-latin-700-normal.woff2") format("woff2");
+        font-weight: 700;
+      }
+      @font-face {
+        font-family: "Caption Sans";
+        src: url("assets/fonts/inter-latin-ext-700-normal.woff2") format("woff2");
+        font-weight: 700;
+        unicode-range: U+0100-024F, U+20B9;
+      }
+      @font-face {
+        font-family: "Caption Serif";
+        src: url("assets/fonts/playfair-display-latin-900-italic.woff2") format("woff2");
         font-weight: 900;
-        unicode-range: U+20B9;
+        font-style: italic;
+      }
+      @font-face {
+        font-family: "Caption Serif";
+        src: url("assets/fonts/playfair-display-latin-ext-900-italic.woff2") format("woff2");
+        font-weight: 900;
+        font-style: italic;
+        unicode-range: U+0100-024F, U+20B9;
       }
       * {
         margin: 0;
@@ -355,7 +375,7 @@ TEMPLATE = r"""<!doctype html>
         height: 100%;
         overflow: hidden;
         background: #0c0c0f;
-        font-family: "Montserrat Rupee", "Montserrat", sans-serif;
+        font-family: "Caption Sans", sans-serif;
       }
       #cam-wrap {
         position: absolute;
@@ -396,51 +416,72 @@ TEMPLATE = r"""<!doctype html>
         inset: 0;
         z-index: 20;
       }
-      /* Phrase captions: 3-5 words, one calm size, the spoken word lights up. */
+      /* Phrase captions: small lines reveal word by word; one keyword per phrase in a big
+         neon black-italic serif on its own line. */
       .cap {
         position: absolute;
-        left: 70px;
-        right: 70px;
-        top: 1140px;
-        height: 220px;
+        left: 60px;
+        right: 60px;
+        top: 1110px;
+        height: 320px;
         display: flex;
-        flex-wrap: wrap;
-        align-content: center;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        column-gap: 0.28em;
-        row-gap: 0.06em;
-        font-size: __CAPTION_SIZE__px;
-        font-weight: 900;
-        line-height: 1.08;
-        letter-spacing: -0.01em;
+        gap: 8px;
         text-align: center;
         opacity: 0;
+      }
+      .line {
+        max-width: 940px;
+        font-family: "Caption Sans", sans-serif;
+        font-weight: 700;
+        font-size: 54px;
+        line-height: 1.16;
+        letter-spacing: -0.012em;
+        color: #ffffff;
+        text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.6);
+      }
+      .accent {
+        font-family: "Caption Serif", serif;
+        font-style: italic;
+        font-weight: 900;
+        font-size: 136px;
+        line-height: 1.04;
+        letter-spacing: -0.012em;
+        color: #f0fd0c;
+        padding: 0 0.1em;
+        text-shadow: 0 6px 26px rgba(0, 0, 0, 0.35);
+      }
+      .accent.ringed {
+        padding: 0.12em 0.3em 0.06em;
       }
       .w {
         position: relative;
         display: inline-block;
-        color: #ffffff;
-        -webkit-text-stroke: 0.045em rgba(0, 0, 0, 0.9);
-        paint-order: stroke fill;
-        text-shadow: 0 0.06em 0.22em rgba(0, 0, 0, 0.55);
         white-space: nowrap;
       }
-      .w.ringed {
-        margin: 0 0.1em 0 0.16em;
+      .dot {
+        display: inline-block;
+        width: 0.3em;
+        height: 0.3em;
+        margin: 0 0.02em;
+        border-radius: 50%;
+        background: #f0fd0c;
+        vertical-align: 0.12em;
       }
       .ring {
         position: absolute;
-        left: -16%;
-        top: -34%;
-        width: 132%;
-        height: 168%;
+        left: -26%;
+        top: -14%;
+        width: 152%;
+        height: 128%;
         overflow: visible;
       }
       .ring path {
         fill: none;
         stroke: #ff2b2b;
-        stroke-width: 2.6;
+        stroke-width: 2.4;
         stroke-linecap: round;
         stroke-linejoin: round;
       }
@@ -457,23 +498,28 @@ TEMPLATE = r"""<!doctype html>
       }
       #namecard {
         display: flex;
-        align-items: center;
-        gap: 0.28em;
-        padding: 26px 54px 30px;
+        align-items: baseline;
+        gap: 24px;
+        padding: 22px 56px 30px;
         background: #f6f1e7;
         color: #0c0c0f;
-        font-weight: 900;
-        font-size: 72px;
-        line-height: 1;
-        letter-spacing: -0.02em;
         clip-path: polygon(0% 6%, 7% 0%, 18% 4%, 31% 1%, 44% 5%, 57% 0%, 70% 4%, 83% 1%, 94% 5%, 100% 1%, 99% 52%, 100% 96%, 90% 100%, 76% 95%, 63% 100%, 50% 96%, 36% 100%, 22% 95%, 10% 100%, 0% 95%, 1% 50%);
         box-shadow: 0 12px 0 rgba(0, 0, 0, 0.35);
       }
-      .nc-w {
-        display: inline-block;
+      .nc-name {
+        font-family: "Caption Serif", serif;
+        font-style: italic;
+        font-weight: 900;
+        font-size: 96px;
+        line-height: 1;
+        letter-spacing: -0.01em;
       }
-      .nc-w.r {
-        color: #ff2b2b;
+      .nc-role {
+        font-family: "Caption Sans", sans-serif;
+        font-weight: 700;
+        font-size: 50px;
+        letter-spacing: -0.01em;
+        color: #e0221f;
       }
     </style>
   </head>

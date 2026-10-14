@@ -1,53 +1,59 @@
-// Main timeline for the Viplav "outgrown" reel: phrase captions with word-by-word highlight,
-// red circles, the camera (jump-cut framing, slow drift, gentle punch-ins) and the name card.
+// Main timeline for the Viplav "outgrown" reel: phrase captions revealed word by word, the
+// red circle, the camera (jump-cut framing, slow drift, gentle punch-ins) and the name card.
 // Every time it uses comes from window.REEL_EDL, the edit decision list that
 // tools/build_index.py writes into index.html; the script inlines this file there too.
 (function () {
   const EDL = window.REEL_EDL;
   const tl = gsap.timeline({ paused: true });
 
-  const WHITE = "#ffffff";
-  const YELLOW = "#ffe11a";
-  const RED = "#ff2b2b";
-
-  // ---- Captions: a phrase eases in, each word lights up as it is spoken, then settles to
-  // white (or keeps its power colour), and the phrase eases out.
+  // ---- Captions (styled after the client's reference): a phrase appears with its first word,
+  // every word blurs into focus as it is spoken, keywords land big with a softer settle, and the
+  // phrase fades out before the next one.
   EDL.caps.forEach(function (g) {
     const cap = "#" + g.id;
-    tl.fromTo(cap, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, g.start - 0.06);
+    tl.fromTo(cap, { opacity: 0 }, { opacity: 1, duration: 0.05 }, Math.max(0, g.start - 0.1));
     tl.fromTo(
       cap,
       { opacity: 1 },
-      { opacity: 0, duration: 0.2, ease: "power1.in", immediateRender: false },
-      g.end - 0.2,
+      { opacity: 0, duration: 0.22, ease: "power1.in", immediateRender: false },
+      g.end - 0.22,
     );
     g.words.forEach(function (w) {
       const el = "#" + w.id;
-      const lit = w.c === "r" ? RED : YELLOW;
-      const rest = w.c === "r" ? RED : w.c === "y" ? YELLOW : WHITE;
-      tl.fromTo(
-        el,
-        { color: WHITE, scale: 1 },
-        { color: lit, scale: 1.06, duration: 0.18, ease: "power2.out" },
-        Math.max(0, w.on - 0.04),
-      );
-      tl.fromTo(
-        el,
-        { color: lit, scale: 1.06 },
-        { color: rest, scale: 1, duration: 0.15, ease: "power1.out", immediateRender: false },
-        w.off - 0.04,
-      );
+      if (w.accent) {
+        tl.fromTo(
+          el,
+          { opacity: 0, scale: 1.14, y: 10, filter: "blur(16px)" },
+          { opacity: 1, scale: 1, y: 0, filter: "blur(0px)", duration: 0.45, ease: "power3.out" },
+          Math.max(0, w.on - 0.06),
+        );
+      } else {
+        tl.fromTo(
+          el,
+          { opacity: 0, y: 8, filter: "blur(8px)" },
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.28, ease: "power2.out" },
+          Math.max(0, w.on - 0.05),
+        );
+      }
+      if (w.dot) {
+        tl.fromTo(
+          el + "-dot",
+          { opacity: 0, scale: 0 },
+          { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" },
+          w.on + 0.08,
+        );
+      }
       if (w.ring) {
         const path = document.querySelector(el + " .ring path");
         const len = path.getTotalLength();
         // Hidden until it draws: a fully offset dash still paints its round cap as a dot.
         gsap.set(path, { strokeDasharray: len, strokeDashoffset: len, opacity: 0 });
-        tl.fromTo(path, { opacity: 0 }, { opacity: 1, duration: 0.01, immediateRender: false }, w.on + 0.15);
+        tl.fromTo(path, { opacity: 0 }, { opacity: 1, duration: 0.01, immediateRender: false }, w.on + 0.25);
         tl.fromTo(
           path,
           { strokeDashoffset: len },
           { strokeDashoffset: 0, duration: 0.6, ease: "power2.inOut", immediateRender: false },
-          w.on + 0.15,
+          w.on + 0.25,
         );
       }
     });
