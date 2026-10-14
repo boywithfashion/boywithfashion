@@ -4,7 +4,7 @@
   A founder figure and a building stand side by side; the building is capped at the
   founder's height by a dashed red ceiling. On "founders" the founder grows and lifts the
   ceiling; on "grow" the building follows him up.
-  Local times are cued to the speaker's words (scene starts at 19.74s on the main timeline).
+  Local times are cued to the speaker's words (scene starts on "only" on the main timeline).
 -->
 <html lang="en">
   <head>
@@ -90,7 +90,7 @@
         }
         .fd-label-bld {
           left: 575px;
-          bottom: 1170px;
+          bottom: 1126px;
           color: #f7f7f2;
         }
         .fd-up {
@@ -131,9 +131,10 @@
       <script>
         (function () {
           const tl = gsap.timeline({ paused: true });
-          // Founder starts at 45% height (top at y=720); building is capped just under him.
+          // Founder starts at 45% height (top at y=720); the building (30%, top at y=810) sits under
+          // the ceiling with its label clear of the dashed line.
           const F0 = 0.45;
-          const B0 = 0.36;
+          const B0 = 0.3;
           const FOUNDER_RISE = 600 * (1 - F0);
           const BLD_RISE = 600 * (1 - B0);
 
@@ -154,19 +155,19 @@
             "#fd-founder",
             { scale: F0 },
             { scale: 1, duration: 0.55, ease: "back.out(1.6)", immediateRender: false },
-            1.12,
+            1.27,
           );
           tl.fromTo(
             "#fd-label-founder",
             { y: 0 },
             { y: -FOUNDER_RISE, duration: 0.55, ease: "back.out(1.6)", immediateRender: false },
-            1.12,
+            1.27,
           );
           tl.fromTo(
             "#fd-ceiling",
             { y: 0 },
             { y: -FOUNDER_RISE, duration: 0.55, ease: "back.out(1.6)", immediateRender: false },
-            1.12,
+            1.27,
           );
 
           // "grow" -> the business follows him up.
@@ -174,22 +175,23 @@
             "#fd-bld",
             { scaleY: B0 },
             { scaleY: 1, duration: 0.45, ease: "back.out(1.5)", immediateRender: false },
-            2.08,
+            2.23,
           );
           tl.fromTo(
             "#fd-label-bld",
             { y: 0 },
             { y: -BLD_RISE, duration: 0.45, ease: "back.out(1.5)", immediateRender: false },
-            2.08,
+            2.23,
           );
           tl.fromTo(
             "#fd-up",
             { opacity: 0, y: 60 },
             { opacity: 1, y: 0, duration: 0.22, ease: "back.out(2.5)" },
-            2.1,
+            2.25,
           );
 
-          tl.to("#fd-stage", { xPercent: -105, duration: 0.12, ease: "power2.in" }, 2.44);
+          // Swipe out across the cut (2.71) so it reveals the next shot, not the tail of this one.
+          tl.to("#fd-stage", { xPercent: -105, duration: 0.13, ease: "power2.in" }, 2.71);
 
           window.__timelines["broll-founders"] = tl;
         })();

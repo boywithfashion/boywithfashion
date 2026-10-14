@@ -140,7 +140,7 @@
             <svg class="sc-arrow" viewBox="0 0 1080 1920" aria-hidden="true">
               <path
                 id="sc-arrow-path"
-                d="M 200 720 L 500 520 L 800 170"
+                d="M 200 720 L 540 420 L 770 140"
                 fill="none"
                 stroke="#ffe11a"
                 stroke-width="16"
@@ -149,7 +149,7 @@
               />
               <path
                 id="sc-arrow-head"
-                d="M 742 176 L 800 170 L 806 230"
+                d="M 717 155 L 770 140 L 766 195"
                 fill="none"
                 stroke="#ffe11a"
                 stroke-width="16"
@@ -247,7 +247,8 @@
             2.2,
           );
 
-          tl.to("#sc-stage", { xPercent: -105, duration: 0.13, ease: "power2.in" }, 3.11);
+          // Swipe out across the cut (3.24) so it reveals the next shot, not the tail of this one.
+          tl.to("#sc-stage", { xPercent: -105, duration: 0.13, ease: "power2.in" }, 3.24);
 
           window.__timelines["broll-scales"] = tl;
         })();
