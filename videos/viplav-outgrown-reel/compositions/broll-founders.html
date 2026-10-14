@@ -1,10 +1,11 @@
 <!doctype html>
 <!--
-  B-roll D: "only when the founders grow".
+  B-roll: "businesses grow only when the founders grow".
   A founder figure and a building stand side by side; the building is capped at the
   founder's height by a dashed red ceiling. On "founders" the founder grows and lifts the
-  ceiling; on "grow" the building follows him up.
-  Local times are cued to the speaker's words (scene starts on "only" on the main timeline).
+  ceiling; on "grow" the building follows him up. The final chart holds until the paper
+  rip on the main timeline tears it away.
+  Local times are cued to the speaker's words (the scene starts on "businesses").
 -->
 <html lang="en">
   <head>
@@ -137,61 +138,58 @@
           const B0 = 0.3;
           const FOUNDER_RISE = 600 * (1 - F0);
           const BLD_RISE = 600 * (1 - B0);
+          // Calm pacing: gentle ease-outs at about half the earlier speed, no snaps; the final
+          // chart holds still until the paper rip on the main timeline tears it away.
 
+          // "businesses grow" -> the chart settles in: founder and building rise, labels fade up.
           tl.fromTo(
             "#fd-stage",
-            { scale: 1.14, opacity: 0 },
-            { scale: 1, opacity: 1, duration: 0.2, ease: "power3.out" },
+            { scale: 1.05, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.6, ease: "power2.out" },
             0,
           );
-          tl.fromTo("#fd-founder", { scale: 0 }, { scale: F0, duration: 0.3, ease: "back.out(2)" }, 0.08);
-          tl.fromTo("#fd-bld", { scaleY: 0 }, { scaleY: B0, duration: 0.3, ease: "back.out(2)" }, 0.2);
-          tl.fromTo("#fd-ceiling", { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: "power2.out" }, 0.4);
-          tl.fromTo("#fd-label-founder", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.2 }, 0.3);
-          tl.fromTo("#fd-label-bld", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.2 }, 0.42);
+          tl.fromTo("#fd-founder", { scale: 0 }, { scale: F0, duration: 0.8, ease: "power2.out" }, 0.25);
+          tl.fromTo("#fd-bld", { scaleY: 0 }, { scaleY: B0, duration: 0.8, ease: "power2.out" }, 0.45);
+          tl.fromTo("#fd-label-founder", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.85);
+          tl.fromTo("#fd-label-bld", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 1.0);
 
-          // "founders" -> the founder grows and lifts the ceiling with him.
+          // "only when" -> the ceiling draws across at the founder's height.
+          tl.fromTo("#fd-ceiling", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power2.inOut" }, 1.77);
+
+          // "the founders" -> the founder grows and lifts the ceiling with him.
           tl.fromTo(
             "#fd-founder",
             { scale: F0 },
-            { scale: 1, duration: 0.55, ease: "back.out(1.6)", immediateRender: false },
-            1.27,
+            { scale: 1, duration: 1.1, ease: "power2.out", immediateRender: false },
+            3.02,
           );
           tl.fromTo(
             "#fd-label-founder",
             { y: 0 },
-            { y: -FOUNDER_RISE, duration: 0.55, ease: "back.out(1.6)", immediateRender: false },
-            1.27,
+            { y: -FOUNDER_RISE, duration: 1.1, ease: "power2.out", immediateRender: false },
+            3.02,
           );
           tl.fromTo(
             "#fd-ceiling",
             { y: 0 },
-            { y: -FOUNDER_RISE, duration: 0.55, ease: "back.out(1.6)", immediateRender: false },
-            1.27,
+            { y: -FOUNDER_RISE, duration: 1.1, ease: "power2.out", immediateRender: false },
+            3.02,
           );
 
-          // "grow" -> the business follows him up.
+          // "grow." -> the business follows him up, and holds.
           tl.fromTo(
             "#fd-bld",
             { scaleY: B0 },
-            { scaleY: 1, duration: 0.45, ease: "back.out(1.5)", immediateRender: false },
-            2.23,
+            { scaleY: 1, duration: 1.0, ease: "power2.out", immediateRender: false },
+            3.99,
           );
           tl.fromTo(
             "#fd-label-bld",
             { y: 0 },
-            { y: -BLD_RISE, duration: 0.45, ease: "back.out(1.5)", immediateRender: false },
-            2.23,
+            { y: -BLD_RISE, duration: 1.0, ease: "power2.out", immediateRender: false },
+            3.99,
           );
-          tl.fromTo(
-            "#fd-up",
-            { opacity: 0, y: 60 },
-            { opacity: 1, y: 0, duration: 0.22, ease: "back.out(2.5)" },
-            2.25,
-          );
-
-          // Swipe out across the cut (2.71) so it reveals the next shot, not the tail of this one.
-          tl.to("#fd-stage", { xPercent: -105, duration: 0.13, ease: "power2.in" }, 2.71);
+          tl.fromTo("#fd-up", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 4.3);
 
           window.__timelines["broll-founders"] = tl;
         })();
