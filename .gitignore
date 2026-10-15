@@ -1,0 +1,5 @@
+# HyperFrames per-project state, check reports and render output
+.hyperframes/
+renders/
+node_modules/
+.DS_Store

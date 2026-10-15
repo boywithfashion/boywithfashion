@@ -1,0 +1,199 @@
+<!doctype html>
+<!--
+  B-roll: "businesses grow only when the founders grow".
+  A founder figure and a building stand side by side; the building is capped at the
+  founder's height by a dashed red ceiling. On "founders" the founder grows and lifts the
+  ceiling; on "grow" the building follows him up. The final chart holds until the paper
+  rip on the main timeline tears it away.
+  Local times are cued to the speaker's words (the scene starts on "businesses").
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          font-family: "Montserrat", sans-serif;
+          color: #f7f7f2;
+        }
+        .fd-stage {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(120% 80% at 50% 38%, #24242b 0%, #0c0c0f 70%);
+        }
+        .fd-grid {
+          position: absolute;
+          inset: 0;
+          background:
+            repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 96px),
+            repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 96px);
+        }
+        .fd-ground {
+          position: absolute;
+          left: 90px;
+          right: 90px;
+          top: 990px;
+          height: 6px;
+          border-radius: 3px;
+          background: rgba(255, 255, 255, 0.3);
+        }
+        .fd-founder {
+          position: absolute;
+          left: 150px;
+          bottom: 930px;
+          width: 300px;
+          height: 600px;
+          display: block;
+          transform-origin: 50% 100%;
+        }
+        .fd-bld {
+          position: absolute;
+          left: 590px;
+          bottom: 930px;
+          width: 330px;
+          height: 600px;
+          border: 6px solid rgba(247, 247, 242, 0.9);
+          border-bottom: none;
+          border-radius: 12px 12px 0 0;
+          background-color: #2b2b33;
+          background-image:
+            repeating-linear-gradient(0deg, transparent 0 26px, #2b2b33 26px 58px),
+            repeating-linear-gradient(90deg, transparent 0 24px, rgba(255, 225, 26, 0.75) 24px 50px, transparent 50px 74px);
+          background-position: 6px 40px;
+          transform-origin: 50% 100%;
+        }
+        .fd-ceiling {
+          position: absolute;
+          left: 110px;
+          right: 110px;
+          top: 720px;
+          height: 0;
+          border-top: 8px dashed #ff2b2b;
+        }
+        .fd-label {
+          position: absolute;
+          width: 360px;
+          text-align: center;
+          font-weight: 900;
+          font-size: 54px;
+          letter-spacing: -0.02em;
+          line-height: 1;
+        }
+        .fd-label-founder {
+          left: 120px;
+          bottom: 1224px;
+          color: #ffe11a;
+        }
+        .fd-label-bld {
+          left: 575px;
+          bottom: 1126px;
+          color: #f7f7f2;
+        }
+        .fd-up {
+          position: absolute;
+          left: 930px;
+          top: 470px;
+          width: 110px;
+          height: 200px;
+          display: block;
+        }
+      </style>
+
+      <div id="root" data-composition-id="broll-founders" data-width="1080" data-height="1920">
+        <div class="fd-stage" id="fd-stage" data-layout-allow-overflow>
+          <div class="fd-grid"></div>
+          <div class="fd-ground"></div>
+          <div class="fd-bld" id="fd-bld"></div>
+          <svg class="fd-founder" id="fd-founder" viewBox="0 0 300 600" aria-hidden="true">
+            <circle cx="150" cy="78" r="70" fill="#ffe11a" />
+            <path d="M 40 600 L 40 250 Q 40 172 118 172 L 182 172 Q 260 172 260 250 L 260 600 Z" fill="#ffe11a" />
+          </svg>
+          <div class="fd-ceiling" id="fd-ceiling"></div>
+          <div class="fd-label fd-label-founder" id="fd-label-founder">FOUNDER</div>
+          <div class="fd-label fd-label-bld" id="fd-label-bld">BUSINESS</div>
+          <svg class="fd-up" id="fd-up" viewBox="0 0 110 200" aria-hidden="true">
+            <path
+              d="M 55 190 L 55 20 M 12 64 L 55 18 L 98 64"
+              fill="none"
+              stroke="#ffe11a"
+              stroke-width="18"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+          // Founder starts at 45% height (top at y=720); the building (30%, top at y=810) sits under
+          // the ceiling with its label clear of the dashed line.
+          const F0 = 0.45;
+          const B0 = 0.3;
+          const FOUNDER_RISE = 600 * (1 - F0);
+          const BLD_RISE = 600 * (1 - B0);
+          // Calm pacing: gentle ease-outs at about half the earlier speed, no snaps; the final
+          // chart holds still until the paper rip on the main timeline tears it away.
+
+          // "businesses grow" -> the chart settles in: founder and building rise, labels fade up.
+          tl.fromTo(
+            "#fd-stage",
+            { scale: 1.05, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.6, ease: "power2.out" },
+            0,
+          );
+          tl.fromTo("#fd-founder", { scale: 0 }, { scale: F0, duration: 0.8, ease: "power2.out" }, 0.25);
+          tl.fromTo("#fd-bld", { scaleY: 0 }, { scaleY: B0, duration: 0.8, ease: "power2.out" }, 0.45);
+          tl.fromTo("#fd-label-founder", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.85);
+          tl.fromTo("#fd-label-bld", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 1.0);
+
+          // "only when" -> the ceiling draws across at the founder's height.
+          tl.fromTo("#fd-ceiling", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power2.inOut" }, 1.77);
+
+          // "the founders" -> the founder grows and lifts the ceiling with him.
+          tl.fromTo(
+            "#fd-founder",
+            { scale: F0 },
+            { scale: 1, duration: 1.1, ease: "power2.out", immediateRender: false },
+            3.02,
+          );
+          tl.fromTo(
+            "#fd-label-founder",
+            { y: 0 },
+            { y: -FOUNDER_RISE, duration: 1.1, ease: "power2.out", immediateRender: false },
+            3.02,
+          );
+          tl.fromTo(
+            "#fd-ceiling",
+            { y: 0 },
+            { y: -FOUNDER_RISE, duration: 1.1, ease: "power2.out", immediateRender: false },
+            3.02,
+          );
+
+          // "grow." -> the business follows him up, and holds.
+          tl.fromTo(
+            "#fd-bld",
+            { scaleY: B0 },
+            { scaleY: 1, duration: 1.0, ease: "power2.out", immediateRender: false },
+            3.99,
+          );
+          tl.fromTo(
+            "#fd-label-bld",
+            { y: 0 },
+            { y: -BLD_RISE, duration: 1.0, ease: "power2.out", immediateRender: false },
+            3.99,
+          );
+          tl.fromTo("#fd-up", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 4.3);
+
+          window.__timelines["broll-founders"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>
